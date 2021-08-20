@@ -1,0 +1,246 @@
+import java.io.*;
+import java.util.*;
+import java.awt.*;
+import javax.swing.*;
+
+public class Game extends JPanel
+{
+    public static void main(String args[])
+    {   
+        System.out.println("MOVE THIS WINDOW TO SEE THE GRAPHICS WINDOW"); 
+        System.out.println();
+        
+        String str = " ";
+        str = generateWord(str);            //generate random word        
+        
+        int size = str.length() - 1;        //length of word  
+        
+        char[] word = convert(str);         //convert string to array
+        
+        System.out.println("The word contains " + size + " letters");   //informs player of how many letters are in the unknown word        
+        
+        char[] guesses = new char[size];    //array that shows spaces depending on letters you have guessed and not yet guessed
+        updateArray(guesses, size);         //filling array with blanks
+        System.out.println();               //space between last and next sentence
+        
+        //creating a graphics window to show the game
+        Hangman frame = new Hangman();
+        frame.setSize(500, 500);
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);            
+        frame.setResizable(false);
+        
+        int lives = 6;                      //Number of guesses 
+        while(lives > 0)                    //while the player still has lives left
+        {   
+            System.out.println("You have " + lives + " lives left");    //updates player on how many lives remain after each turn
+            System.out.println();            
+            
+            String guess = " ";         //player guesses a letter
+            guess = guess(guess);       //inputs players guess
+            
+            int howMany = 0;            //checks how many times the guessed letter appears
+            howMany = checkGuesses(guesses, word, guess, howMany);  //checks to see if the players guess is in the word. If not, howMany remains at 0
+            
+            if(howMany == 0)            //if the guessed letter does not appear a life is lost
+            {
+                lives--;                //Player loses a life if the letter does not appear in the word
+                frame.repaint();        //Updates the graphic window if the player loses a life
+            }
+            
+            int temp2 = 0;   
+            temp2 = check(guesses, word, temp2);        //checks if any "_" remain in the array
+            if(temp2 == size)       //Everytime there is no "_" temp2 increases. If it equals size then there must be no "_" in the array
+            {   
+                //This means the player has guessed the word
+                System.out.println("You Win!"); 
+                System.out.println();
+                System.out.println("Close the window to exit game");
+                    
+                break;
+            }          
+        }
+        if(lives == 0)                  //if the player runs out of lives they lose the game and the word is revealed
+        {
+            System.out.println();        
+            System.out.println("Game over!");
+            System.out.println("The word is " + str);
+            System.out.println("Close the window to exit game");
+        }
+    }    
+    public static String generateWord(String str)       //generates random word from the dictionary
+    {
+        Dictionary rand = new Dictionary();
+        int random_int = (int)(Math.random() * (rand.getSize() - 1 + 1) + 1);
+        str = rand.getWord(random_int);
+        str = str.toLowerCase();                        //changing word to lowercase
+        return str;
+    }    
+    public static char[] convert(String str)            //Converts the randomly generated word to a char array so it can be searched easily
+    {
+        char[] word = new char[str.length()]; 
+        for (int i = 0; i < str.length(); i++) 
+        { 
+            word[i] = str.charAt(i); 
+        }
+        return word;
+    }   
+    public static char[] updateArray(char[] guesses, int size)  //Creates an array that starts as blanks but is updated as the game is played
+    {        
+        for(int i = 0; i < size; i++)
+        {
+            guesses[i] = '_';
+            System.out.print(guesses[i]);
+        }
+        return guesses;
+    }    
+    public static String guess(String guess)        //The player inputs a letter
+    {
+        System.out.print("Guess a letter: ");
+        Scanner sc = new Scanner(System.in);
+        guess = sc.nextLine();
+        return guess;
+    }    
+    public static int checkGuesses(char[] guesses, char[] word, String guess, int howMany)//Checks if the guessed letter is in the word and fills in the blank if it is
+    {           
+        char c = guess.charAt(0);
+        for(int j = 0; j < word.length-1; j++)
+        {                
+            if(word[j] == c)
+            {
+                guesses[j] = c; 
+                howMany++;
+                  
+            }
+            System.out.print(guesses[j]);                
+        }
+        System.out.println();
+        
+        return howMany;
+    }    
+    public static int check(char[] guesses, char[] word, int temp2) //Checks for any remaining '_'. If there are none it means the player has guessed the word
+    {
+        for(int i = 0; i < word.length-1; i++)
+        {
+            if(guesses[i] != '_')           
+            {                        
+                temp2++;
+            }
+        }
+        return temp2;
+    }        
+}
+
+class Hangman extends JFrame    //graphics for the game
+{
+    private int lives = 6;
+    
+    public void repaint() 
+    {
+        lives--;
+        super.repaint();
+    }
+
+    public void paint(Graphics g) //adds new shape everytime a life is lost
+    {   
+        //starting graphic
+        g.drawLine(0, 100, 150, 100);       //top line 
+        g.drawLine(150, 100, 150, 150);     //rope
+        
+        //losing lives
+        if(lives == 5)
+        {
+            g.drawOval(113, 150, 76, 76);       //head        
+        }
+        if(lives == 4)
+        {
+            g.drawOval(113, 150, 76, 76);       //head        
+            g.drawLine(150, 226, 150, 350);     //body        
+        }
+        if(lives == 3)
+        {
+            g.drawOval(113, 150, 76, 76);       //head        
+            g.drawLine(150, 226, 150, 350);     //body        
+            g.drawLine(150, 260, 200, 290);     //right arm        
+        }
+        if(lives == 2)
+        {
+            g.drawOval(113, 150, 76, 76);       //head        
+            g.drawLine(150, 226, 150, 350);     //body        
+            g.drawLine(150, 260, 200, 290);     //right arm        
+            g.drawLine(150, 260, 100, 290);     //left arm        
+        }
+        if(lives == 1)
+        {
+            g.drawOval(113, 150, 76, 76);       //head        
+            g.drawLine(150, 226, 150, 350);     //body        
+            g.drawLine(150, 260, 200, 290);     //right arm        
+            g.drawLine(150, 260, 100, 290);     //left arm        
+            g.drawLine(150, 350, 190, 425);     //right leg        
+        }
+        if(lives == 0)
+        {
+            g.drawOval(113, 150, 76, 76);       //head        
+            g.drawLine(150, 226, 150, 350);     //body        
+            g.drawLine(150, 260, 200, 290);     //right arm        
+            g.drawLine(150, 260, 100, 290);     //left arm        
+            g.drawLine(150, 350, 190, 425);     //right leg        
+            g.drawLine(150, 350, 110, 425);     //left leg
+            
+            g.fillOval(160, 175, 12, 12);       //right eye
+            g.fillOval(130, 175, 12, 12);       //left eye
+            g.fillArc(135, 200, 30, 20, 0, 180);//mouth
+        }
+    }  
+}
+
+//dictionary provided by Maynooth University
+class Dictionary
+{     
+    private String input[];   
+    public Dictionary()
+    {
+        input = load("words.txt");  
+    }    
+    public int getSize(){
+        return input.length;
+    }    
+    public String getWord(int n){
+        return input[n];
+    }   
+    private String[] load(String file) {
+        File aFile = new File(file);     
+        StringBuffer contents = new StringBuffer();
+        BufferedReader input = null;
+        try {
+            input = new BufferedReader( new FileReader(aFile) );
+            String line = null; 
+            int i = 0;
+            while (( line = input.readLine()) != null){
+                contents.append(line);
+                i++;
+                contents.append(System.getProperty("line.separator"));
+            }
+        }catch (FileNotFoundException ex){
+            System.out.println("Can't find the file - are you sure the file is in this location: "+file);
+            ex.printStackTrace();
+        }catch (IOException ex){
+            System.out.println("Input output exception while processing file");
+            ex.printStackTrace();
+        }finally{
+            try {
+                if (input!= null) {
+                    input.close();
+                }
+            }catch (IOException ex){
+                System.out.println("Input output exception while processing file");
+                ex.printStackTrace();
+            }
+        }
+        String[] array = contents.toString().split("\n");
+        for(String s: array){
+            s.trim();
+        }
+        return array;
+    }
+}
